@@ -1,0 +1,49 @@
+@page
+@model Campean_Anca_Lusia_Lab2.Pages.BookPages.DetailsModel
+
+@{
+    ViewData["Title"] = "Book Details";
+}
+
+<h1>Book Details</h1>
+
+<div>
+    <hr />
+
+    <dl class="row">
+        <dt class="col-sm-2">Titlu</dt>
+        <dd class="col-sm-10">@Model.Book.Title</dd>
+
+        <dt class="col-sm-2">Autor</dt>
+        <dd class="col-sm-10">
+            @if (Model.Book.Author != null)
+            {
+                @($"{Model.Book.Author.FirstName} {Model.Book.Author.LastName}")
+            }
+            else
+            {
+                <span>Autor neatribuit</span>
+            }
+        </dd>
+
+        <dt class="col-sm-2">Preț</dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Book.Price)
+        </dd>
+
+        <dt class="col-sm-2">Data publicării</dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Book.PublishingDate)
+        </dd>
+
+        <dt class="col-sm-2">Editură</dt>
+        <dd class="col-sm-10">
+            @(Model.Book.Publisher?.PublisherName)
+        </dd>
+    </dl>
+</div>
+
+<div>
+    <a asp-page="./Edit" asp-route-id="@Model.Book.ID">Edit</a> |
+    <a asp-page="./Index">Back to List</a>
+</div>

@@ -1,0 +1,52 @@
+@page
+@model Campean_Anca_Lusia_Lab2.Pages.BookPages.DeleteModel
+
+@{
+    ViewData["Title"] = "Delete Book";
+}
+
+<h1>Delete Book</h1>
+
+<h3>Sigur dorești să ștergi această carte?</h3>
+
+<div>
+    <hr />
+
+    <dl class="row">
+        <dt class="col-sm-2">Titlu</dt>
+        <dd class="col-sm-10">@Model.Book.Title</dd>
+
+        <dt class="col-sm-2">Autor</dt>
+        <dd class="col-sm-10">
+            @if (Model.Book.Author != null)
+            {
+                @($"{Model.Book.Author.FirstName} {Model.Book.Author.LastName}")
+            }
+            else
+            {
+                <span>Autor neatribuit</span>
+            }
+        </dd>
+
+        <dt class="col-sm-2">Preț</dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Book.Price)
+        </dd>
+
+        <dt class="col-sm-2">Data publicării</dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Book.PublishingDate)
+        </dd>
+
+        <dt class="col-sm-2">Editură</dt>
+        <dd class="col-sm-10">
+            @(Model.Book.Publisher?.PublisherName)
+        </dd>
+    </dl>
+
+    <form method="post">
+        <input type="hidden" asp-for="Book.ID" />
+        <input type="submit" value="Delete" class="btn btn-danger" />
+        <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+    </form>
+</div>
