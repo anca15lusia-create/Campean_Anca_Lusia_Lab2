@@ -12,4 +12,7 @@ public class Campean_Anca_Lusia_Lab2Context(
 
     public DbSet<Campean_Anca_Lusia_Lab2.Models.Authors> Authors
     { get; set; } = default!;
+
+    public DbSet<Campean_Anca_Lusia_Lab2.Models.Category> Category
+    { get; set; } = default!;
 }

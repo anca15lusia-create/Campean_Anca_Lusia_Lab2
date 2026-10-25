@@ -1,104 +1,114 @@
-using Campean_Anca_Lusia_Lab2.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Campean_Anca_Lusia_Lab2.Models;
 
-namespace Campean_Anca_Lusia_Lab2.Pages.BookPages;
-
-public class EditModel : PageModel
+namespace Campean_Anca_Lusia_Lab2.Pages.BookPages
 {
-    private readonly Campean_Anca_Lusia_Lab2Context _context;
-
-    public EditModel(Campean_Anca_Lusia_Lab2Context context)
+    public class EditModel : BookCategoriesPageModel
     {
-        _context = context;
-    }
+        private readonly Campean_Anca_Lusia_Lab2Context _context;
 
-    [BindProperty]
-    public Book Book { get; set; } = new Book();
-
-    public SelectList AuthorOptions { get; set; } = default!;
-    public SelectList PublisherOptions { get; set; } = default!;
-
-    public async Task<IActionResult> OnGetAsync(int? id)
-    {
-        if (id is null)
+        public EditModel(Campean_Anca_Lusia_Lab2Context context)
         {
-            return NotFound();
+            _context = context;
         }
 
-        var book = await _context.Book
-            .FirstOrDefaultAsync(b => b.ID == id);
+        [BindProperty]
+        public Book Book { get; set; } = default!;
 
-        if (book is null)
+        public async Task<IActionResult> OnGetAsync(int? id)
         {
-            return NotFound();
-        }
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-        Book = book;
-        await LoadOptionsAsync();
+            var book = await _context.Book
+                .Include(b => b.Author)
+                .Include(b => b.Publisher)
+                .Include(b => b.BookCategories)
+                    .ThenInclude(bc => bc.Category)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.ID == id);
 
-        return Page();
-    }
+            if (book == null)
+            {
+                return NotFound();
+            }
 
-    public async Task<IActionResult> OnPostAsync()
-    {
-        if (!Book.AuthorID.HasValue)
-        {
-            ModelState.AddModelError(
-                "Book.AuthorID", "Alege un autor.");
-        }
-        else if (!await _context.Authors
-            .AnyAsync(a => a.ID == Book.AuthorID))
-        {
-            ModelState.AddModelError(
-                "Book.AuthorID", "Autorul nu există.");
-        }
+            Book = book;
 
-        if (!ModelState.IsValid)
-        {
-            await LoadOptionsAsync();
+            PopulateAssignedCategoryData(_context, Book);
+            PopulateDropdowns();
+
             return Page();
         }
 
-        var bookToUpdate = await _context.Book.FindAsync(Book.ID);
-
-        if (bookToUpdate is null)
+        public async Task<IActionResult> OnPostAsync(
+            int? id, string[] selectedCategories)
         {
-            return NotFound();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var bookToUpdate = await _context.Book
+                .Include(b => b.Author)
+                .Include(b => b.Publisher)
+                .Include(b => b.BookCategories)
+                    .ThenInclude(bc => bc.Category)
+                .FirstOrDefaultAsync(b => b.ID == id);
+
+            if (bookToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            if (await TryUpdateModelAsync<Book>(
+                bookToUpdate,
+                "Book",
+                b => b.Title,
+                b => b.AuthorID,
+                b => b.Price,
+                b => b.PublishingDate,
+                b => b.PublisherID))
+            {
+                UpdateBookCategories(
+                    _context, selectedCategories, bookToUpdate);
+
+                await _context.SaveChangesAsync();
+
+                return RedirectToPage("./Index");
+            }
+
+            UpdateBookCategories(
+                _context, selectedCategories, bookToUpdate);
+
+            Book = bookToUpdate;
+
+            PopulateAssignedCategoryData(_context, Book);
+            PopulateDropdowns();
+
+            return Page();
         }
 
-        bookToUpdate.Title = Book.Title;
-        bookToUpdate.AuthorID = Book.AuthorID;
-        bookToUpdate.Price = Book.Price;
-        bookToUpdate.PublishingDate = Book.PublishingDate;
-        bookToUpdate.PublisherID = Book.PublisherID;
-
-        await _context.SaveChangesAsync();
-
-        return RedirectToPage("./Index");
-    }
-
-    private async Task LoadOptionsAsync()
-    {
-        var authors = await _context.Authors
-            .OrderBy(a => a.LastName)
-            .Select(a => new
+        private void PopulateDropdowns()
+        {
+            var authorList = _context.Authors.Select(a => new
             {
                 a.ID,
-                FullName = a.FirstName + " " + a.LastName
-            })
-            .ToListAsync();
+                FullName = a.LastName + " " + a.FirstName
+            });
 
-        AuthorOptions = new SelectList(
-            authors, "ID", "FullName", Book.AuthorID);
+            ViewData["AuthorID"] = new SelectList(
+                authorList, "ID", "FullName", Book.AuthorID);
 
-        var publishers = await _context.Publisher
-            .OrderBy(p => p.PublisherName)
-            .ToListAsync();
-
-        PublisherOptions = new SelectList(
-            publishers, "ID", "PublisherName", Book.PublisherID);
+            ViewData["PublisherID"] = new SelectList(
+                _context.Publisher,
+                "ID",
+                "PublisherName",
+                Book.PublisherID);
+        }
     }
 }

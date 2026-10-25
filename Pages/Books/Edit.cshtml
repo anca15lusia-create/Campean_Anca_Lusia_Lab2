@@ -2,69 +2,113 @@
 @model Campean_Anca_Lusia_Lab2.Pages.BookPages.EditModel
 
 @{
-    ViewData["Title"] = "Edit Book";
+    ViewData["Title"] = "Edit";
 }
 
-<h1>Edit Book</h1>
+<h1>Edit</h1>
+
+<h4>Book</h4>
 <hr />
 
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <form method="post">
-            <div asp-validation-summary="All" class="text-danger"></div>
+            <div asp-validation-summary="All"
+                 class="text-danger"></div>
 
             <input type="hidden" asp-for="Book.ID" />
 
             <div class="mb-3">
-                <label asp-for="Book.Title" class="form-label"></label>
+                <label asp-for="Book.Title">Titlu</label>
                 <input asp-for="Book.Title" class="form-control" />
                 <span asp-validation-for="Book.Title"
                       class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="Book.AuthorID" class="form-label">Autor</label>
+                <label asp-for="Book.AuthorID">Autor</label>
                 <select asp-for="Book.AuthorID"
-                        asp-items="Model.AuthorOptions"
+                        asp-items="ViewBag.AuthorID"
                         class="form-select">
-                    <option value="">Alege autorul</option>
+                    <option value="">Selectează autorul</option>
                 </select>
                 <span asp-validation-for="Book.AuthorID"
                       class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="Book.Price" class="form-label"></label>
+                <label asp-for="Book.Price">Preț</label>
                 <input asp-for="Book.Price" class="form-control" />
                 <span asp-validation-for="Book.Price"
                       class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="Book.PublishingDate" class="form-label"></label>
-                <input asp-for="Book.PublishingDate" class="form-control" />
+                <label asp-for="Book.PublishingDate">
+                    Data publicării
+                </label>
+                <input asp-for="Book.PublishingDate"
+                       type="date"
+                       class="form-control" />
                 <span asp-validation-for="Book.PublishingDate"
                       class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="Book.PublisherID" class="form-label">Editură</label>
+                <label asp-for="Book.PublisherID">Editură</label>
                 <select asp-for="Book.PublisherID"
-                        asp-items="Model.PublisherOptions"
+                        asp-items="ViewBag.PublisherID"
                         class="form-select">
-                    <option value="">Alege editura</option>
+                    <option value="">Selectează editura</option>
                 </select>
                 <span asp-validation-for="Book.PublisherID"
                       class="text-danger"></span>
             </div>
 
-            <input type="submit" value="Save" class="btn btn-primary" />
+            <fieldset class="mb-3">
+                <legend class="fs-6">Categorii</legend>
+
+                <table class="table table-borderless">
+                    <tbody>
+                        @for (int i = 0;
+                              i < Model.AssignedCategoryDataList.Count;
+                              i += 3)
+                        {
+                            <tr>
+                                @for (int j = i;
+                                      j < i + 3 &&
+                                      j < Model.AssignedCategoryDataList.Count;
+                                      j++)
+                                {
+                                    var cat = Model.AssignedCategoryDataList[j];
+
+                                    <td>
+                                        <input type="checkbox"
+                                               name="selectedCategories"
+                                               value="@cat.CategoryID"
+                                               id="category_@cat.CategoryID"
+                                               checked="@cat.Assigned" />
+
+                                        <label for="category_@cat.CategoryID">
+                                            @cat.Name
+                                        </label>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </fieldset>
+
+            <button type="submit" class="btn btn-primary">
+                Save
+            </button>
         </form>
     </div>
 </div>
 
 <div class="mt-3">
-    <a asp-page="./Index">Back to List</a>
+    <a asp-page="/Books/Index">Back to List</a>
 </div>
 
 @section Scripts {

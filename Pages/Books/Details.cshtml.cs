@@ -1,39 +1,39 @@
-using Campean_Anca_Lusia_Lab2.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Campean_Anca_Lusia_Lab2.Models;
 
-namespace Campean_Anca_Lusia_Lab2.Pages.BookPages;
-
-public class DetailsModel : PageModel
+namespace Campean_Anca_Lusia_Lab2.Pages.BookPages
 {
-    private readonly Campean_Anca_Lusia_Lab2Context _context;
-
-    public DetailsModel(Campean_Anca_Lusia_Lab2Context context)
+    public class DetailsModel : PageModel
     {
-        _context = context;
-    }
+        private readonly Campean_Anca_Lusia_Lab2Context _context;
 
-    public Book Book { get; set; } = new Book();
-
-    public async Task<IActionResult> OnGetAsync(int? id)
-    {
-        if (id is null)
+        public DetailsModel(Campean_Anca_Lusia_Lab2Context context)
         {
-            return NotFound();
+            _context = context;
         }
 
-        var book = await _context.Book
-            .Include(b => b.Author)
-            .Include(b => b.Publisher)
-            .FirstOrDefaultAsync(b => b.ID == id);
+        public Book Book { get; set; } = default!;
 
-        if (book is null)
+        public async Task<IActionResult> OnGetAsync(int? id)
         {
-            return NotFound();
-        }
+            if (id == null)
+                return NotFound();
 
-        Book = book;
-        return Page();
+            var book = await _context.Book
+                .Include(b => b.Author)
+                .Include(b => b.Publisher)
+                .Include(b => b.BookCategories)
+                    .ThenInclude(bc => bc.Category)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.ID == id);
+
+            if (book == null)
+                return NotFound();
+
+            Book = book;
+            return Page();
+        }
     }
 }

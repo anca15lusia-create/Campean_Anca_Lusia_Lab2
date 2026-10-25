@@ -1,51 +1,89 @@
-using Campean_Anca_Lusia_Lab2.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Campean_Anca_Lusia_Lab2.Models;
 
-namespace Campean_Anca_Lusia_Lab2.Pages.BookPages;
-
-public class IndexModel : PageModel
+namespace Campean_Anca_Lusia_Lab2.Pages.BookPages
 {
-    private readonly Campean_Anca_Lusia_Lab2Context _context;
-
-    public IndexModel(Campean_Anca_Lusia_Lab2Context context)
+    public class IndexModel : PageModel
     {
-        _context = context;
-    }
+        private readonly Campean_Anca_Lusia_Lab2Context _context;
 
-    public IList<Book> Book { get; set; } = new List<Book>();
-
-    public SelectList AuthorOptions { get; set; } = default!;
-
-    [BindProperty(SupportsGet = true)]
-    public int? AuthorID { get; set; }
-
-    public async Task OnGetAsync()
-    {
-        var authors = await _context.Authors
-            .OrderBy(a => a.LastName)
-            .Select(a => new
-            {
-                a.ID,
-                FullName = a.FirstName + " " + a.LastName
-            })
-            .ToListAsync();
-
-        AuthorOptions = new SelectList(
-            authors, "ID", "FullName", AuthorID);
-
-        var query = _context.Book
-            .Include(b => b.Author)
-            .Include(b => b.Publisher)
-            .AsQueryable();
-
-        if (AuthorID.HasValue)
+        public IndexModel(Campean_Anca_Lusia_Lab2Context context)
         {
-            query = query.Where(b => b.AuthorID == AuthorID.Value);
+            _context = context;
         }
 
-        Book = await query.ToListAsync();
+        public IList<Book> Book { get; set; } = new List<Book>();
+
+        public BookData BookD { get; set; } = new BookData();
+
+        public int BookID { get; set; }
+
+        public int CategoryID { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int? AuthorID { get; set; }
+
+        public SelectList AuthorOptions { get; set; } = default!;
+
+        public async Task OnGetAsync(int? id, int? categoryID)
+        {
+            var authorList = await _context.Authors
+                .OrderBy(a => a.LastName)
+                .Select(a => new
+                {
+                    a.ID,
+                    FullName = a.LastName + " " + a.FirstName
+                })
+                .ToListAsync();
+
+            AuthorOptions = new SelectList(
+                authorList, "ID", "FullName", AuthorID);
+
+            var booksQuery = _context.Book
+                .Include(b => b.Author)
+                .Include(b => b.Publisher)
+                .Include(b => b.BookCategories)
+                    .ThenInclude(bc => bc.Category)
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (AuthorID.HasValue)
+            {
+                booksQuery = booksQuery.Where(
+                    b => b.AuthorID == AuthorID.Value);
+            }
+
+            Book = await booksQuery
+                .OrderBy(b => b.Title)
+                .ToListAsync();
+
+            BookD = new BookData
+            {
+                Books = Book
+            };
+
+            if (id.HasValue)
+            {
+                BookID = id.Value;
+
+                var selectedBook = BookD.Books
+                    .FirstOrDefault(b => b.ID == id.Value);
+
+                if (selectedBook != null)
+                {
+                    BookD.Categories = selectedBook.BookCategories
+                        .Select(bc => bc.Category)
+                        .ToList();
+                }
+            }
+
+            if (categoryID.HasValue)
+            {
+                CategoryID = categoryID.Value;
+            }
+        }
     }
 }
