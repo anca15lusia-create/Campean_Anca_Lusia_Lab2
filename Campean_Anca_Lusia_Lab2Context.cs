@@ -15,4 +15,7 @@ public class Campean_Anca_Lusia_Lab2Context(
 
     public DbSet<Campean_Anca_Lusia_Lab2.Models.Category> Category
     { get; set; } = default!;
+
+    public DbSet<Campean_Anca_Lusia_Lab2.Models.Member> Member
+    { get; set; } = default!;
 }

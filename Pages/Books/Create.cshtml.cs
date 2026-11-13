@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Campean_Anca_Lusia_Lab2.Models;
 
 namespace Campean_Anca_Lusia_Lab2.Pages.BookPages
 {
+    [Authorize(Roles = "Admin")]
     public class CreateModel : BookCategoriesPageModel
     {
         private readonly Campean_Anca_Lusia_Lab2Context _context;
@@ -42,7 +44,6 @@ namespace Campean_Anca_Lusia_Lab2.Pages.BookPages
                 }
             }
 
-            // Relațiile sunt stabilite prin AuthorID și PublisherID.
             ModelState.Remove("Book.Author");
             ModelState.Remove("Book.Publisher");
             ModelState.Remove("Book.BookCategories");
